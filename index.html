@@ -3,79 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mathura-Vrindavan Tour Map</title>
+    <title>Braj Darshan - Mathura Vrindavan Tour</title>
     
-    <!-- Leaflet CSS link (Map ki styling ke liye) -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts for Thematic Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Yatra+One&display=swap" rel="stylesheet">
 
-    <!-- Apne map container ki height set karna zaroori hai -->
     <style>
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
+            background-color: #Fdf4e3; /* Earthy Sandstone background */
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
+
+        /* Thematic Header Bar */
+        #header {
+            background-color: #005A9C; /* Peacock Blue */
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 5px solid #FF9933; /* Marigold Orange */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        #header h1 {
+            font-family: 'Yatra One', serif; /* Traditional touch font */
+            margin: 0;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+
+        #header .subtitle {
+            font-size: 14px;
+            color: #FFD699;
+            font-family: 'Poppins', sans-serif;
+            margin-left: 10px;
+        }
+
+        .lang-toggle {
+            background-color: #FF9933;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .lang-toggle:hover {
+            background-color: #e67e22;
+        }
+
+        /* Map Container */
         #tour-map {
+            flex-grow: 1;
             width: 100%;
-            height: 100vh; /* Pura screen cover karega */
+        }
+
+        /* Customizing Leaflet Popup for Theme */
+        .leaflet-popup-content-wrapper {
+            background: #FFF9F0;
+            border: 2px solid #FF9933;
+            border-radius: 8px;
+        }
+        .leaflet-popup-tip {
+            background: #FF9933;
+        }
+        .popup-title {
+            font-family: 'Yatra One', serif;
+            color: #005A9C;
+            font-size: 20px;
+            margin: 0 0 5px 0;
+            text-align: center;
+        }
+        .popup-city {
+            color: #d35400;
+            font-weight: 600;
+            font-size: 13px;
+            text-align: center;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .popup-time {
+            font-size: 13px;
+            color: #444;
+            background: #FDEBD0;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #FF9933;
         }
     </style>
 </head>
 <body>
 
-    <!-- Yahan map load hoga -->
+    <!-- Header UI -->
+    <div id="header">
+        <div>
+            <h1>Braj Darshan <span class="subtitle">ब्रज दर्शन</span></h1>
+        </div>
+        <button class="lang-toggle">A / अ</button>
+    </div>
+
+    <!-- Map Container -->
     <div id="tour-map"></div>
 
-    <!-- Leaflet JS script (Map ke functions ke liye) -->
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        // Step 1: Map ko initialize karna aur center point set karna 
-        // (27.54, 77.68 Mathura aur Vrindavan ke beech ka point hai)
-        const map = L.map('tour-map').setView([27.5400, 77.6800], 12); // '12' zoom level hai
+        const map = L.map('tour-map', {
+            zoomControl: false // Customizing default UI
+        }).setView([27.5400, 77.6800], 12);
 
-        // Step 2: OpenStreetMap ki tiles (images) map par lagana
+        // Map control ko neeche right side shift karna
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Step 3: Humara Temple Data (JSON format mein)
+        // Custom Marker: Emoji/Icon marker instead of default blue pin
+        const brajIcon = L.divIcon({
+            html: '<div style="font-size: 32px; text-shadow: 2px 2px 4px rgba(0,0,0,0.4);">🛕</div>',
+            className: 'custom-div-icon',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+        });
+
         const temples = [
           {
             id: "T001",
             name: "Shri Banke Bihari Temple",
             city: "Vrindavan",
-            timings: "Morning: 07:45 - 12:00 | Evening: 17:30 - 21:30",
+            timings: "<b>Morning:</b> 07:45 - 12:00 <br> <b>Evening:</b> 17:30 - 21:30",
             coordinates: { lat: 27.5806, lng: 77.6983 }
           },
           {
             id: "T002",
             name: "Shri Krishna Janmasthan",
             city: "Mathura",
-            timings: "Morning: 05:00 - 12:00 | Evening: 16:00 - 21:30",
+            timings: "<b>Morning:</b> 05:00 - 12:00 <br> <b>Evening:</b> 16:00 - 21:30",
             coordinates: { lat: 27.5050, lng: 77.6738 }
           }
         ];
 
-        // Step 4: Loop chala kar har mandir par marker (pin) aur popup lagana
+        // Loop to add markers with custom theme
         temples.forEach(temple => {
-            // Marker lagana
-            const marker = L.marker([temple.coordinates.lat, temple.coordinates.lng]).addTo(map);
+            const marker = L.marker([temple.coordinates.lat, temple.coordinates.lng], { icon: brajIcon }).addTo(map);
             
-            // Popup mein dikhne wala text (HTML format mein)
             const popupContent = `
-                <div style="text-align: center;">
-                    <h3 style="margin-bottom: 5px; color: #d35400;">${temple.name}</h3>
-                    <p style="margin-top: 0; font-weight: bold;">${temple.city}</p>
-                    <p style="font-size: 14px;">🕒 <b>Timings:</b><br>${temple.timings}</p>
+                <div>
+                    <h3 class="popup-title">${temple.name}</h3>
+                    <p class="popup-city">📍 ${temple.city}</p>
+                    <div class="popup-time">
+                        🕒 ${temple.timings}
+                    </div>
                 </div>
             `;
             
-            // Marker ke sath popup bind karna
             marker.bindPopup(popupContent);
         });
-
     </script>
 </body>
-</html>
+            </html>
+    
 
