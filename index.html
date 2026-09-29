@@ -168,37 +168,32 @@
         };
 
         // ================= API & INIT FUNCTIONS =================
-        async function loginUser() {
-            let email = document.getElementById('userEmailInput').value;
-            if (email.trim() !== "") {
-                userEmail = email;
-                // Backend call (Error aaye toh bhi frontend chalta rahega)
-                try {
-                    await fetch('http://localhost:3000/api/login', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: userEmail })
-                    });
-                } catch(e) { console.log("Backend not connected, running locally."); }
-            }
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'flex';
-        }
+        // 1. Updated Login Function
+async function loginUser() {
+    let email = document.getElementById('userEmailInput').value;
+    if (email.trim() !== "") {
+        userEmail = email;
+    }
+    
+    // Abhi hum seedha Step 2 par jayenge (bina backend call kiye)
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'flex';
+}
 
-        async function submitContribution() {
-            let place = document.getElementById('newPlaceName').value;
-            if(place.trim() === "") return alert("Naam likhein!");
-            
-            try {
-                let res = await fetch('http://localhost:3000/api/contribute', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: userEmail, place_name: place })
-                });
-                if(res.ok) alert(`"${place}" data submit ho gaya!`);
-            } catch(e) { alert("Local submit success!"); }
-            
-            document.getElementById('newPlaceName').value = "";
-            document.getElementById('contributeModal').style.display = 'none';
+// 2. Updated Contribute Function
+async function submitContribution() {
+    let place = document.getElementById('newPlaceName').value;
+    if(place.trim() === "") {
+        return alert("Naam likhein!");
+    }
+    
+    // Abhi sirf alert dikhayenge
+    alert(`"${place}" data submit ho gaya! (Backend lagne ke baad yeh save hoga)`);
+    
+    document.getElementById('newPlaceName').value = "";
+    document.getElementById('contributeModal').style.display = 'none';
         }
+        
 
         // ================= MAP & GPS LOGIC =================
         function requestLocation() {
