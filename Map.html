@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Braj Darshan - App Flow</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Yatra+One&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #Fdf4e3; /* Earthy background */
+            overflow: hidden; /* Screen scroll na ho */
+        }
+
+        /* --- Onboarding Screens (Step 1, 2, 3) --- */
+        .onboarding-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            text-align: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #Fdf4e3;
+            z-index: 2000;
+            transition: opacity 0.5s ease;
+        }
+
+        .logo-title {
+            font-family: 'Yatra One', serif;
+            color: #005A9C;
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        .input-box, .btn {
+            padding: 12px 20px;
+            margin: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        .btn {
+            background-color: #FF9933;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover { background-color: #e67e22; }
+
+        .checkbox-group {
+            text-align: left;
+            margin: 20px 0;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        /* --- Main Map UI (Step 4) --- */
+        #main-ui {
+            display: none; /* Initially hidden */
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        #tour-map {
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Map sabse neeche */
+        }
+
+        /* Floating Top Bar (From First Sketch) */
+        .top-floating-bar {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 1000; /* Map ke upar */
+        }
+
+        .top-left { display: flex; align-items: center; gap: 15px; }
+        .top-left span { font-family: 'Yatra One', serif; color: #005A9C; font-size: 20px; }
+        
+        .top-right { display: flex; align-items: center; gap: 20px; color: #555; font-size: 20px; cursor: pointer; }
+
+        .ai-guide-btn {
+            background: #FDEBD0;
+            color: #d35400;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        /* Floating Bottom Bar (From First Sketch) */
+        .bottom-floating-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+            z-index: 1000; /* Map ke upar */
+        }
+
+        .bottom-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #005A9C;
+            font-size: 12px;
+            cursor: pointer;
+            gap: 5px;
+        }
+
+        .bottom-action i {
+            font-size: 20px;
+            color: #FF9933;
+        }
+        
+        /* Highlight Contribute Button */
+        .contribute-btn i {
+            background: #FF9933;
+            color: white;
+            padding: 12px;
+            border-radius: 50%;
+            margin-top: -25px; /* Thoda upar utha hua */
+            border: 4px solid #Fdf4e3;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- STEP 1: Login / Email -->
+    <div id="step1" class="onboarding-screen">
+        <h1 class="logo-title">Braj Darshan</h1>
+        <p>Aapka swagat hai!</p>
+        <input type="email" class="input-box" placeholder="Email / Login ID">
+        <button class="btn" onclick="nextStep(1)">Login</button>
+    </div>
+
+    <!-- STEP 2: Location Permission -->
+    <div id="step2" class="onboarding-screen" style="display: none;">
+        <h1 class="logo-title">Braj Darshan</h1>
+        <i class="fas fa-map-marker-alt" style="font-size: 50px; color: #FF9933; margin: 20px;"></i>
+        <p>Behtar anubhav ke liye apni<br>Live Location allow karein.</p>
+        <button class="btn" onclick="requestLocation()">Allow Location</button>
+    </div>
+
+    <!-- STEP 3: Preferences / Kahan Ghoomna Hai -->
+    <div id="step3" class="onboarding-screen" style="display: none;">
+        <h1 class="logo-title">Braj Darshan</h1>
+        <p>Aap kahan ghoomna chahte hain?</p>
+        <div class="checkbox-group">
+            <label><input type="checkbox" checked> Shri Banke Bihari, Vrindavan</label><br><br>
+            <label><input type="checkbox" checked> Shri Krishna Janmasthan, Mathura</label><br><br>
+            <label><input type="checkbox"> Prem Mandir, Vrindavan</label><br><br>
+            <label><input type="checkbox"> Govardhan Parikrama</label>
+        </div>
+        <button class="btn" onclick="startTour()">Darshan Shuru Karein</button>
+    </div>
+
+    <!-- STEP 4: Main Map UI -->
+    <div id="main-ui">
+        
+        <!-- Top Floating Controls -->
+        <div class="top-floating-bar">
+            <div class="top-left">
+                <span>Braj Darshan</span>
+                <div class="ai-guide-btn"><i class="fas fa-robot"></i> AI Guide</div>
+            </div>
+            <div class="top-right">
+                <i class="fas fa-microphone" title="Mic"></i>
+                <i class="fas fa-user-circle" title="Profile"></i>
+            </div>
+        </div>
+
+        <!-- The Map Container -->
+        <div id="tour-map"></div>
+
+        <!-- Bottom Floating Controls -->
+        <div class="bottom-floating-bar">
+            <div class="bottom-action">
+                <i class="fas fa-compass"></i>
+                <span>Explore</span>
+            </div>
+            <div class="bottom-action contribute-btn">
+                <i class="fas fa-plus"></i>
+                <span>Contribute</span>
+            </div>
+            <div class="bottom-action">
+                <i class="fas fa-share-alt"></i>
+                <span>Share</span>
+            </div>
+            <div class="bottom-action">
+                <i class="fas fa-layer-group"></i>
+                <span>Layers</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Screen Navigation Logic
+        function nextStep(currentStep) {
+            document.getElementById('step' + currentStep).style.display = 'none';
+            document.getElementById('step' + (currentStep + 1)).style.display = 'flex';
+        }
+
+        // Mock function for Location Permission (Step 2)
+        function requestLocation() {
+            // Yahan actual Geolocation API aayegi future mein
+            // Abhi ke liye hum next step par ja rahe hain
+            nextStep(2);
+        }
+
+        // Final Step: Hide onboarding, show Main UI, and Load Map
+        function startTour() {
+            document.getElementById('step3').style.display = 'none';
+            const mainUi = document.getElementById('main-ui');
+            mainUi.style.display = 'block'; // Make Map UI visible
+            
+            // Map ko render karne ke liye thoda delay zaroori hai tabhi wo full size lega
+            setTimeout(() => {
+                initMap();
+            }, 100);
+        }
+
+        // Map Initialization Function
+        function initMap() {
+            const map = L.map('tour-map', { zoomControl: false }).setView([27.5400, 77.6800], 12);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(map);
+
+            // Custom Temple Marker
+            const brajIcon = L.divIcon({
+                html: '<div style="font-size: 32px; text-shadow: 2px 2px 4px rgba(0,0,0,0.4);">🛕</div>',
+                className: 'custom-div-icon',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -32]
+            });
+
+            const temples = [
+              { name: "Banke Bihari", coordinates: { lat: 27.5806, lng: 77.6983 } },
+              { name: "Janmasthan", coordinates: { lat: 27.5050, lng: 77.6738 } }
+            ];
+
+            temples.forEach(temple => {
+                L.marker([temple.coordinates.lat, temple.coordinates.lng], { icon: brajIcon })
+                 .bindPopup(`<b>${temple.name}</b>`)
+                 .addTo(map);
+            });
+        }
+    </script>
+</body>
+  </html>
+  
