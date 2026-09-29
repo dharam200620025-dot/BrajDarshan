@@ -167,6 +167,17 @@
             border: 4px solid #Fdf4e3;
             font-size: 24px;
         }
+/* Live Location pulsing effect */
+@keyframes pulseGlow {
+    0% { text-shadow: 0 0 5px #FF9933, 0 0 10px #FF9933; transform: scale(1); }
+    50% { text-shadow: 0 0 15px #FF9933, 0 0 25px #d35400; transform: scale(1.1); }
+    100% { text-shadow: 0 0 5px #FF9933, 0 0 10px #FF9933; transform: scale(1); }
+}
+
+.user-live-icon {
+    font-size: 28px;
+    animation: pulseGlow 1.5s infinite; /* Lagatar glow karega */
+}
     </style>
 </head>
 <body>
@@ -265,33 +276,69 @@ function startTour() {
     }, 100);
 }
 
-// --- Global Variables (Taaki buttons inko access kar sakein) ---
-let map;
-let streetLayer;
-let satelliteLayer;
-let isSatellite = false; // Check karne ke liye ki abhi kaunsa view active hai
+// Global variable location save karne ke liye
+let userLocation = null; 
+let userMarker = null;
 
-// --- Map Initialization ---
+// --- Step 2: Asli GPS Permission Mangna ---
+function requestLocation() {
+    if (navigator.geolocation) {
+        // Browser se location mangna
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                // Location mil gayi
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                console.log("Tourist ki location:", userLocation);
+                nextStep(2); // Step 3 par jao
+            },
+            function(error) {
+                // Agar user deny kar de
+                alert("Location allow karna zaroori hai map ke liye!");
+                nextStep(2); // Abhi ke liye aage badha rahe hain testing ke liye
+            }
+        );
+    } else {
+        alert("Aapka device GPS support nahi karta.");
+        nextStep(2);
+    }
+}
+
+// --- Map Initialization with User Location ---
 function initMap() {
-    // 1. Map ka base setup
-    map = L.map('tour-map', { zoomControl: false }).setView([27.5400, 77.6800], 12);
+    // Agar location mili hai toh map us par focus karega, nahi toh Mathura ke center par
+    const startLat = userLocation ? userLocation.lat : 27.5400;
+    const startLng = userLocation ? userLocation.lng : 77.6800;
+
+    map = L.map('tour-map', { zoomControl: false }).setView([startLat, startLng], 14); // 14 zoom se map thoda pass dikhega
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // 2. Base Layers Define Karna
-    // Standard Street View (OpenStreetMap)
     streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
-    });
+    }).addTo(map);
 
-    // Satellite View (Esri World Imagery - Free & No API key needed)
     satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri'
     });
 
-    // By default Street layer add karenge
-    streetLayer.addTo(map);
+    // --- User ka Cultural Marker (Charan 👣) ---
+    if (userLocation) {
+        const charanIcon = L.divIcon({
+            html: '<div class="user-live-icon">👣</div>',
+            className: 'custom-div-icon',
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -30]
+        });
 
-    // 3. Custom Temple Marker
+        userMarker = L.marker([userLocation.lat, userLocation.lng], { icon: charanIcon })
+            .bindPopup(`<b style="color:#d35400;">Aap yahan hain (Parikrama Shuru)</b>`)
+            .addTo(map);
+    }
+
+    // --- Mandiron ke Markers ---
     const brajIcon = L.divIcon({
         html: '<div style="font-size: 32px; text-shadow: 2px 2px 4px rgba(0,0,0,0.4);">🛕</div>',
         className: 'custom-div-icon',
@@ -311,6 +358,7 @@ function initMap() {
          .addTo(map);
     });
 }
+
 
 // --- Share Location Logic ---
 function shareAppLocation() {
