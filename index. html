@@ -322,4 +322,32 @@
             let rec = new SR();
             rec.lang = isHindi ? 'hi-IN' : 'en-IN';
             
-            document.getElementById('mic
+            document.getElementById('mic-btn').classList.add('mic-listening');
+            rec.start();
+            speakAudio(isHindi ? "बताइये" : "Speak now");
+
+            rec.onresult = (e) => {
+                let t = e.results[0][0].transcript.toLowerCase();
+                if(t.includes("explore") || t.includes("रास्ता")) findNearestTemple();
+                else if(t.includes("profile") || t.includes("प्रोफाइल")) openProfile();
+            };
+            rec.onend = () => document.getElementById('mic-btn').classList.remove('mic-listening');
+        }
+
+        function toggleMapLayer() {
+            if(isSatellite) { map.removeLayer(satelliteLayer); streetLayer.addTo(map); }
+            else { map.removeLayer(streetLayer); satelliteLayer.addTo(map); }
+            isSatellite = !isSatellite;
+        }
+
+        function openProfile() {
+            document.getElementById('profileEmail').innerText = userEmail;
+            document.getElementById('visitedCount').innerText = templesData.filter(t => t.visited).length;
+            document.getElementById('currentTargetDisplay').innerText = currentTargetTemple ? currentTargetTemple.name : "None";
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+        function openContribute() { document.getElementById('contributeModal').style.display = 'flex'; }
+        function shareAppLocation() { navigator.share ? navigator.share({url: window.location.href}) : alert("Copy link!"); }
+    </script>
+</body>
+</html>
